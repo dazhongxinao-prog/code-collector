@@ -1,0 +1,22 @@
+[
+  {
+    "id": "demo-sum",
+    "title": "两数求和",
+    "code": "sum",
+    "group": "入门练习",
+    "volume": "示例卷",
+    "source_paper_id": "demo-paper",
+    "statement": "输入两个整数 a 和 b，输出它们的和。输入示例：2 3；输出示例：5。范围：-1000 <= a,b <= 1000。",
+    "allowed_exts": [
+      ".cpp"
+    ],
+    "file_type_desc": "C++ 源码 (.cpp)",
+    "template_code": "",
+    "rules": {
+      "freopen_check": false,
+      "return_0_check": false,
+      "forbidden_headers": true,
+      "max_file_size_mb": 5
+    }
+  }
+]

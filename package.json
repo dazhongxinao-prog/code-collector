@@ -1,0 +1,23 @@
+{
+  "name": "@dazhong/code-collector",
+  "version": "1.0.0",
+  "description": "代码回收系统：面向编程教学和模拟考试的代码提交、交卷锁定与归档工具。",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test"
+  },
+  "keywords": [],
+  "author": "dazhong",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "archiver": "^8.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.4.0"
+  },
+  "private": true
+}

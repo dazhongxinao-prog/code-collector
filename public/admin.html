@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代码回收系统 · 考务管理控制台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261011-2">
+  <style>
+    .admin-nav { display: flex; gap: 10px; }
+    .grid-contests { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; margin-top: 14px; }
+    .contest-card {
+      background: #ffffff; border: 1px solid var(--border); border-radius: 0; padding: 18px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+      box-shadow: var(--shadow-card); transition: border-color .15s;
+    }
+    .contest-card:hover { border-color: var(--border-hover); }
+    .contest-card.active-c { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+    .c-badge {
+      display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 7px; border-radius: 0;
+      background: var(--bg-subtle); color: var(--text-2); border: 1px solid var(--border);
+    }
+    .c-badge.active { background: var(--success-bg); color: var(--success); border-color: var(--success-border); font-weight: 600; }
+    
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 5px; }
+    .form-control {
+      width: 100%; border: 1px solid var(--border); border-radius: 0; padding: 7px 10px;
+      font-size: 13px; font-family: inherit; outline: none; background: #ffffff; color: var(--text-main);
+      transition: border-color .15s;
+    }
+    .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+    
+    .problem-box {
+      background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 0;
+      padding: 14px; margin-bottom: 12px; position: relative;
+    }
+    .prob-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .prob-title { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .prob-del-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+    .prob-del-btn:hover { text-decoration: underline; }
+    
+    .flex-row { display: flex; gap: 10px; }
+    .flex-1 { flex: 1; }
+
+    .chk-group { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; align-items: center; margin-top: 6px; }
+    .chk-group label { display: flex; align-items: center; gap: 5px; cursor: pointer; color: var(--text-2); }
+    .qbank-results { max-height: 48vh; overflow-y: auto; border: 1px solid var(--border); }
+    .qbank-row { padding: 12px; border-bottom: 1px solid var(--border); }
+    .qbank-row:last-child { border-bottom: 0; }
+    .qbank-row:hover { background: var(--bg-subtle); }
+    .qbank-row-head { display: flex; align-items: flex-start; gap: 10px; }
+    .qbank-row-title { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .qbank-row-meta { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+    .qbank-statement { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 12px; color: var(--text-2); background: var(--bg-subtle); padding: 10px; margin-top: 8px; max-height: 180px; overflow: auto; }
+    .problem-statement-editor { height: 140px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <a class="brand-box" href="./">
+        <span class="brand-logo"><i data-lucide="settings" style="width:18px;height:18px;"></i> 代码回收系统 · 考务后台</span>
+      </a>
+      <div class="topnav" id="topbar-actions">
+        <a href="./" target="_blank" class="btn btn-outline btn-sm"><i data-lucide="eye"></i> 打开考生端</a>
+        <button class="btn btn-danger-o btn-sm" onclick="logoutAdmin()"><i data-lucide="lock"></i> 退出登录</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-wrap">
+    <!-- 头部栏 -->
+    <div class="page-title-row">
+      <div class="page-title-left">
+        <div>
+          <h1>考务管理控制台</h1>
+          <div class="pt-sub">比赛排期、题目自定义上交类型、代码归档及一键打包评测导出</div>
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-brand" onclick="openCreateContestModal()"><i data-lucide="sparkles"></i> 创建新比赛</button>
+      </div>
+    </div>
+
+    <!-- 比赛列表管理卡片 -->
+    <div class="card" style="padding:20px;">
+      <h3 style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text-main);">
+        <i data-lucide="list-checks" style="width:16px;height:16px;color:var(--primary);"></i> 现有比赛列表与设置
+      </h3>
+      <div class="grid-contests" id="contests-grid"></div>
+    </div>
+
+    <!-- 考情监控与代码归档卡片 -->
+    <div class="card" style="padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <h3 style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text-main);">
+            <i data-lucide="hard-drives" style="width:16px;height:16px;color:var(--primary);"></i> 实时考情监控与代码归档包导出
+          </h3>
+          <div style="font-size:12px;color:var(--text-3);margin-top:2px;">查看当前各机位考生代码落盘进度，一键导出用于 NOI Linux 或评测机的标准代码归档包。</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select id="overview-contest-select" class="form-control" style="width:260px;" onchange="loadSubmissionsOverview(this.value)">
+            <option value="">选择比赛查看进度...</option>
+          </select>
+          <button class="btn btn-brand" onclick="exportEvaluationZip()"><i data-lucide="file-text"></i> 一键导出评测 ZIP 包</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="exam-table">
+          <thead>
+            <tr>
+              <th>考生官网账号</th>
+              <th>分配机位</th>
+              <th>已交题数</th>
+              <th>交卷锁定状态</th>
+              <th>题目提交详情</th>
+              <th>代码下载</th>
+            </tr>
+          </thead>
+          <tbody id="overview-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text-3);padding:24px;">请选择上方比赛查看实时考情。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 创建/编辑比赛弹窗 ============ -->
+  <div class="modal-mask" id="modal-contest">
+    <div class="modal" style="max-width:820px;">
+      <div class="modal-head">
+        <div>
+          <h3 id="contest-modal-title">创建新比赛</h3>
+          <p>配置草稿中的比赛基本信息、题目代号及允许提交的文件类型；保存后需发布才会影响学生端</p>
+        </div>
+        <button class="modal-x" onclick="closeModal('modal-contest')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <div class="flex-row">
+          <div class="form-group flex-1">
+            <label>比赛唯一代号 (ID / slug) *</label>
+            <input type="text" id="c-id" class="form-control" placeholder="如 csp-j2026, python2026">
+          </div>
+          <div class="form-group flex-1">
+            <label>比赛类型分类</label>
+            <input type="text" id="c-category" class="form-control" placeholder="如 信奥复赛 (C++), Python 挑战赛">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>比赛全称 (显示在页面主标题与存根单) *</label>
+          <input type="text" id="c-title" class="form-control" placeholder="如 2026 CCF CSP-J 河南省入门级第二轮认证（大中信奥考点）">
+        </div>
+
+        <div class="flex-row">
+          <div class="form-group flex-1">
+            <label>简短标题 (用于下拉菜单显示)</label>
+            <input type="text" id="c-short-title" class="form-control" placeholder="如 CSP-J 2026 第二轮认证">
+          </div>
+          <div class="form-group flex-1">
+            <label>考点 / 举办单位</label>
+            <input type="text" id="c-school" class="form-control" placeholder="如 河南 · 大中信奥（大中实验校区）">
+          </div>
+        </div>
+
+        <div class="flex-row">
+          <div class="form-group flex-1">
+            <label>比赛开始时间</label>
+            <input type="text" id="c-start" class="form-control" placeholder="YYYY-MM-DD HH:MM:SS">
+          </div>
+          <div class="form-group flex-1">
+            <label>比赛结束时间 (倒计时依据) *</label>
+            <input type="text" id="c-end" class="form-control" placeholder="YYYY-MM-DD HH:MM:SS">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>考场特别提醒 (防爆零守则提示词)</label>
+          <textarea id="c-notice" class="form-control" style="height:60px;" placeholder="显示在考生端横幅的注意事项..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>比赛 PDF 资料（保存草稿后上传，发布后学生可查看）</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="file" id="c-pdf" class="form-control" accept="application/pdf,.pdf">
+            <button type="button" class="btn btn-outline btn-sm" onclick="uploadContestPdf()">上传 PDF</button>
+          </div>
+          <div id="materials-list" style="font-size:12px;color:var(--text-3);margin-top:8px;"></div>
+        </div>
+
+        <div class="form-group">
+          <label>比赛 ZIP 资料（发布后学生可直接下载）</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="file" id="c-zip-material" class="form-control" accept=".zip,application/zip">
+            <button type="button" class="btn btn-outline btn-sm" onclick="uploadContestZipMaterial()">上传 ZIP 资料</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-3);margin-top:5px;">
+            系统只保存原 ZIP，不解析测试点。发布比赛后，学生可以下载完整文件；请确认其中内容适合公开。
+          </div>
+          <div id="zip-material-status" style="font-size:12px;color:var(--text-3);margin-top:8px;"></div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;">
+          <h4 style="font-size:13.5px;font-weight:600;color:var(--text-main);">题目与上交类型列表</h4>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="openQuestionBankPicker()"><i data-lucide="book-open"></i> 从教师题库选题</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addProblemRow()"><i data-lucide="sparkles"></i> 手动添加题目</button>
+          </div>
+        </div>
+
+        <div id="problems-container"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-contest')">取消</button>
+        <button class="btn btn-brand" onclick="saveContestForm()"><i data-lucide="check-circle-2"></i> 保存草稿</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 教师题库选题弹窗（仅考务后台） ============ -->
+  <div class="modal-mask" id="modal-question-bank" style="z-index:1010;">
+    <div class="modal" style="max-width:900px;">
+      <div class="modal-head">
+        <div>
+          <h3>从教师题库选题</h3>
+          <p>题库内容仅考务后台可见；选入比赛草稿并发布后，学生才会看到所选题目。</p>
+        </div>
+        <button class="modal-x" onclick="closeModal('modal-question-bank')" aria-label="关闭题库选择"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <div class="flex-row" style="align-items:flex-end;flex-wrap:wrap;">
+          <div class="form-group flex-1" style="min-width:220px;">
+            <label for="qbank-search">搜索题目</label>
+            <input id="qbank-search" class="form-control" type="search" placeholder="按题目名称、题号或题面内容搜索" oninput="renderQuestionBankPicker()">
+          </div>
+          <div class="form-group flex-1" style="min-width:220px;">
+            <label for="qbank-paper-filter">按组别 / 卷筛选</label>
+            <select id="qbank-paper-filter" class="form-control" onchange="renderQuestionBankPicker()">
+              <option value="">全部题目</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-left:auto;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="toggleVisibleQuestionBankItems()">全选当前结果</button>
+          </div>
+        </div>
+        <div id="qbank-selected-count" style="font-size:12px;color:var(--text-3);margin:0 0 8px;">已选 0 题</div>
+        <div id="qbank-results" class="qbank-results" aria-live="polite"></div>
+      </div>
+      <div class="modal-foot" style="padding:14px 20px;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-question-bank')">取消</button>
+        <button type="button" class="btn btn-brand" onclick="addSelectedQuestionBankItems()"><i data-lucide="check"></i> 添加到本场比赛</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理员登录与官方绑定弹窗 -->
+  <div class="modal-mask" id="modal-login">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal-head">
+        <div>
+          <h3>考务安全验证</h3>
+          <p>支持大中信奥官方管理员账号直接免密使用</p>
+        </div>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+        <!-- 官方系统管理员一键进入卡片 -->
+        <div style="background:var(--info-bg);border:1px solid var(--info-border);border-radius:0;padding:14px;text-align:center;">
+          <div style="font-weight:600;color:var(--info);font-size:13px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i data-lucide="check-circle-2" style="width:16px;height:16px;color:var(--info);"></i> 官方管理员免密通行
+          </div>
+          <p style="font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:12px;" id="official-status-desc">
+            系统已绑定官网权限中心。官网教师或管理员登录后，刷新或点击下方按钮即可直接进入。
+          </p>
+          <button type="button" class="btn btn-brand" style="width:100%;justify-content:center;" onclick="loginWithOfficial()">
+            <i data-lucide="eye"></i> 官网教师/管理员直接进入
+          </button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;color:var(--text-4);font-size:11.5px;">
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+          <span>或输入考务应急密钥</span>
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label>考务应急独立密钥</label>
+          <input type="password" id="admin-secret-input" class="form-control" placeholder="请输入已配置的应急密钥" onkeydown="if(event.key==='Enter')doAdminLogin()">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="doAdminLogin()"><i data-lucide="lock"></i> 密钥验证进入</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-box"></div>
+
+  <script src="js/admin.js?v=20261011-2"></script>
+</body>
+</html>

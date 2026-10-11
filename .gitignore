@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+data/*
+!data/contests.json
+!data/question-bank.json
+!data/locks.json
+!data/submissions/
+data/submissions/*
+!data/submissions/.gitkeep
+*.log
+.DS_Store
+Thumbs.db
+coverage/

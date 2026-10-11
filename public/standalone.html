@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大中信奥 · CSP-J/S 复赛代码回收系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+/* ================================================================
+   大中信奥 · 代码回收系统 (Code Collector)
+   设计规范：Lyra + Mist + Cyan 扁平化设计体系
+   ================================================================ */
+
+:root {
+  /* 品牌主色 (Cyan) */
+  --primary: #0891b2;         /* cyan-600 */
+  --primary-hover: #0e7490;   /* cyan-700 */
+  --primary-subtle: #ecfeff;  /* cyan-50 */
+  --primary-text: #0e7490;    /* cyan-700 */
+
+  /* 中性背景色阶 (Mist) */
+  --bg-page: #f8fafb;         /* mist-50 */
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f5f9;       /* mist-100 */
+  --bg-muted: #e2e8f0;        /* mist-200 */
+
+  /* 边框规范 */
+  --border: #e2e8f0;          /* mist-200 */
+  --border-hover: #cbd5e1;    /* mist-300 */
+  --border-soft: #f1f5f9;
+
+  /* 文字色阶 */
+  --text-main: #0f172a;       /* mist-900 / 标题、重要信息 */
+  --text-2: #334155;          /* mist-700 / 正文 */
+  --text-3: #64748b;          /* mist-500 / 描述、辅助信息 */
+  --text-4: #94a3b8;          /* mist-400 / 副标题、占位 */
+
+  /* 功能语义色 */
+  --success: #16a34a;         /* green-600 */
+  --success-bg: #f0fdf4;      /* green-50 */
+  --success-border: #bbf7d0;  /* green-200 */
+
+  --warning: #d97706;         /* amber-600 */
+  --warning-bg: #fffbeb;      /* amber-50 */
+  --warning-border: #fde68a;  /* amber-200 */
+  --warning-text: #92400e;    /* amber-800 */
+
+  --danger: #dc2626;          /* red-600 */
+  --danger-bg: #fef2f2;       /* red-50 */
+  --danger-border: #fecaca;   /* red-200 */
+
+  --info: #0284c7;            /* sky-600 */
+  --info-bg: #f0f9ff;         /* sky-50 */
+  --info-border: #bae6fd;     /* sky-200 */
+
+  /* 兼容历史变量名映射 */
+  --brand: var(--primary);
+  --brand-dark: var(--primary-hover);
+  --brand-light: var(--primary-subtle);
+  --navy: var(--text-main);
+  --ink: var(--text-main);
+  --paper: var(--bg-page);
+  --line: var(--border);
+  --dark-btn: var(--primary);
+  --dark-btn-hover: var(--primary-hover);
+
+  /* 零圆角规范 (Lyra) */
+  --radius: 0;
+
+  /* 极简微阴影 */
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-modal: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  background: var(--bg-page);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+}
+
+/* ============ 全局图标尺寸约束 ============ */
+svg.lucide, .lucide, i[data-lucide] {
+  width: 16px;
+  height: 16px;
+  max-width: 100%;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ============ 顶部导航 ============ */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-inner {
+  max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.brand-box {
+  display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit;
+}
+.brand-logo {
+  font-size: 16px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; letter-spacing: -0.02em;
+}
+.brand-logo i, .brand-logo svg { color: var(--primary); width: 20px; height: 20px; }
+.brand-badge {
+  font-size: 11px; background: var(--primary-subtle); color: var(--primary-text);
+  border: 1px solid #cffafe; padding: 2px 8px; border-radius: 9999px; font-weight: 500;
+}
+
+.topnav { display: flex; align-items: center; gap: 10px; }
+.contest-select-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-subtle); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 0; font-size: 12.5px; font-weight: 500;
+}
+.contest-select-wrap svg, .contest-select-wrap i { width: 14px; height: 14px; color: var(--primary); }
+.contest-select {
+  border: none; background: transparent; font-size: 12.5px; font-weight: 500;
+  color: var(--text-main); outline: none; cursor: pointer; max-width: 260px; font-family: inherit;
+}
+
+.auth-area { display: flex; align-items: center; gap: 10px; }
+.btn-login, .btn-signup {
+  text-decoration: none; font-size: 13px; font-weight: 500; padding: 6px 14px;
+  border-radius: 0; transition: all .15s; display: inline-flex; align-items: center; justify-content: center;
+}
+.btn-login { color: var(--text-2); background: transparent; }
+.btn-login:hover { color: var(--primary); background: var(--bg-subtle); }
+.btn-signup { background: var(--primary); color: #fff; }
+.btn-signup:hover { background: var(--primary-hover); }
+
+.user-chip {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); padding: 4px 10px 4px 6px; border-radius: 9999px; background: #fff;
+}
+.user-avatar {
+  width: 26px; height: 26px; border-radius: 9999px; background: var(--primary); color: #fff;
+  font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center;
+}
+.u-name { font-size: 12.5px; font-weight: 600; line-height: 1.2; color: var(--text-main); }
+.u-sub { font-size: 10px; color: var(--text-3); }
+
+/* ============ 主容器 ============ */
+.main-wrap {
+  max-width: 1200px; width: 100%; margin: 0 auto; padding: 24px 24px 48px;
+  display: flex; flex-direction: column; gap: 16px; flex: 1;
+}
+
+.page-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.page-title-left { display: flex; align-items: center; gap: 12px; }
+.page-title-icon {
+  width: 36px; height: 36px; border-radius: 0; background: var(--primary-subtle);
+  color: var(--primary); display: flex; align-items: center; justify-content: center;
+  border: 1px solid #cffafe;
+}
+.page-title-icon svg, .page-title-icon i { width: 18px; height: 18px; }
+h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); }
+.pt-sub { font-size: 13px; color: var(--text-3); margin-top: 2px; }
+
+/* ============ 卡片通用 ============ */
+.card {
+  background: #ffffff; border: 1px solid var(--border); border-radius: 0;
+  box-shadow: var(--shadow-card); overflow: hidden; transition: border-color .15s;
+}
+
+/* ============ 考试 HUD (官网全浅色扁平风) ============ */
+.hud {
+  padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
+  background: #ffffff; color: var(--text-main); border: 1px solid var(--border);
+  border-top: 3px solid var(--primary); border-radius: 0; gap: 20px;
+}
+.hud-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--primary-subtle); color: var(--primary-text);
+  border: 1px solid #cffafe;
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 0; margin-bottom: 8px;
+}
+.hud-tag svg, .hud-tag i { width: 12px; height: 12px; }
+.hud-left h2 { font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; }
+.hud-meta { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13px; color: var(--text-3); line-height: 1.6; }
+.hud-meta span b { color: var(--text-main); font-weight: 600; }
+
+.countdown-box {
+  background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 0;
+  padding: 12px 20px; text-align: center; min-width: 160px;
+}
+.cd-label {
+  font-size: 11px; color: var(--text-3); font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.cd-time {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 26px; font-weight: 700; color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+.cd-time.warn { color: var(--warning); }
+.cd-time.over { color: var(--danger); font-size: 15px; }
+
+/* ============ 账号绑定卡 ============ */
+.bind-card {
+  padding: 16px 20px; display: flex; align-items: center; gap: 16px;
+  background: #ffffff; border: 1px solid var(--border);
+  border-left: 3px solid var(--primary); border-radius: 0;
+}
+.bind-card.ok { border-left-color: var(--success); }
+.bind-icon { color: var(--primary); display: flex; align-items: center; }
+.bind-icon svg, .bind-icon i { width: 20px; height: 20px; }
+.bind-card.ok .bind-icon { color: var(--success); }
+.bind-body { flex: 1; }
+.bind-body h3 { font-size: 14px; font-weight: 600; margin-bottom: 3px; color: var(--text-main); }
+.bind-body p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.bind-action { display: flex; align-items: center; gap: 10px; }
+
+/* ============ 提示横幅 (Amber 扁平风) ============ */
+.ccf-alert {
+  background: var(--warning-bg); border: 1px solid var(--warning-border);
+  border-left: 3px solid var(--warning); border-radius: 0;
+  padding: 12px 18px; font-size: 12.5px; line-height: 1.6; color: var(--warning-text);
+}
+.ccf-alert .hl { font-weight: 600; color: #78350f; text-decoration: underline; }
+
+/* ============ 选项卡 ============ */
+.tabs {
+  display: flex; align-items: center; border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle); padding: 0 16px; gap: 4px;
+}
+.tab-btn {
+  border: 1px solid transparent; border-bottom: none; background: transparent;
+  padding: 11px 18px; font-size: 13px; font-weight: 500;
+  color: var(--text-3); cursor: pointer; border-radius: 0; display: inline-flex; align-items: center; gap: 8px;
+  white-space: nowrap; transition: all .15s; font-family: inherit; margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.6); }
+.tab-btn.active {
+  color: var(--primary); background: #ffffff;
+  border: 1px solid var(--border); border-bottom-color: #ffffff;
+  border-top: 2px solid var(--primary); font-weight: 600;
+}
+.tab-btn svg, .tab-btn i { width: 15px; height: 15px; color: inherit; }
+
+/* ============ 表格与表头栏 ============ */
+.table-head-bar {
+  padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); background: #ffffff; gap: 16px;
+}
+.table-head-bar h2 {
+  font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+  color: var(--text-main); margin: 0; white-space: nowrap;
+}
+.table-head-bar h2 svg, .table-head-bar h2 i { width: 16px; height: 16px; color: var(--primary); }
+.submit-count { font-size: 12.5px; font-weight: 500; color: var(--text-3); white-space: nowrap; }
+.submit-count b { color: var(--primary); font-size: 14px; font-weight: 700; }
+
+.exam-table { width: 100%; min-width: 820px; border-collapse: collapse; text-align: left; font-size: 13px; line-height: 1.5; }
+.exam-table th {
+  background: var(--bg-subtle); padding: 11px 16px; color: var(--text-2);
+  font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.exam-table td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.exam-table tr:hover td { background: #f8fafc; }
+
+.p-name { font-weight: 600; font-size: 13.5px; color: var(--text-main); }
+.p-sub { font-size: 11.5px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+.code-tag {
+  font-family: 'JetBrains Mono', monospace; background: var(--bg-subtle); border: 1px solid var(--border);
+  padding: 2px 7px; border-radius: 0; font-size: 12px; font-weight: 500; color: var(--text-2);
+}
+.type-badge {
+  font-family: 'JetBrains Mono', monospace; display: inline-block; font-size: 11px; font-weight: 500;
+  padding: 1px 6px; border-radius: 0; background: var(--bg-subtle); border: 1px solid var(--border);
+  color: var(--text-3); margin-left: 6px;
+}
+
+.pill {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600;
+  padding: 2px 8px; border-radius: 9999px;
+}
+.pill svg, .pill i { width: 12px; height: 12px; }
+.pill-ok { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+.pill-pending { background: var(--bg-subtle); color: var(--text-3); border: 1px solid var(--border); }
+.pill-login { background: var(--info-bg); color: var(--info); border: 1px solid var(--info-border); }
+.mono-dim { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-3); }
+
+/* ============ 表格底部 ============ */
+.table-foot {
+  padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+  background: var(--bg-subtle); border-top: 1px solid var(--border); font-size: 12px; color: var(--text-3);
+  gap: 16px; flex-wrap: wrap;
+}
+.table-foot .note {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3);
+}
+.table-foot .note svg, .table-foot .note i { width: 14px; height: 14px; color: var(--text-3); }
+.foot-actions { display: flex; gap: 10px; align-items: center; }
+
+/* ============ 按钮通用 (Lyra 零圆角) ============ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 13px; font-weight: 500; min-height: 36px; padding: 0 16px; border-radius: 0;
+  cursor: pointer; border: 1px solid transparent; transition: all .15s; font-family: inherit;
+  white-space: nowrap; text-decoration: none;
+}
+.btn svg, .btn i { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-sm { min-height: 32px; padding: 0 12px; font-size: 12px; }
+.btn-sm svg, .btn-sm i { width: 13px; height: 13px; }
+.btn-brand, .btn-primary { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+.btn-brand:hover, .btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn-outline { background: #ffffff; border-color: var(--border); color: var(--text-main); }
+.btn-outline:hover { background: var(--bg-subtle); border-color: var(--border-hover); }
+.btn-ghost { background: transparent; color: var(--primary); }
+.btn-ghost:hover { background: var(--primary-subtle); }
+.btn-danger-o { background: #ffffff; border-color: var(--danger-border); color: var(--danger); }
+.btn-danger-o:hover { background: var(--danger-bg); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-gated { opacity: 0.72; }
+.btn-gated:hover { opacity: 1; }
+
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--primary); outline-offset: 1px;
+}
+
+/* ============ 弹窗通用 (Lyra 零圆角) ============ */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px);
+  z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-mask.show { display: flex; }
+.modal {
+  background: #ffffff; border-radius: 0; width: 100%; max-width: 620px;
+  border: 1px solid var(--border); box-shadow: var(--shadow-modal);
+  overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;
+}
+.modal-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+}
+.modal-head h3 { font-size: 15px; font-weight: 600; color: var(--text-main); }
+.modal-head p { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.modal-x { border: none; background: transparent; cursor: pointer; color: var(--text-3); display: flex; align-items: center; }
+.modal-x svg, .modal-x i { width: 16px; height: 16px; }
+.modal-x:hover { color: var(--text-main); }
+
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-foot {
+  padding: 12px 20px; border-top: 1px solid var(--border); background: var(--bg-subtle);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+.login-prompt-modal { max-width: 440px; }
+.login-prompt-body { display: flex; align-items: center; gap: 14px; color: var(--text-2); line-height: 1.6; }
+
+/* 上传弹窗 */
+.mode-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.mode-tab {
+  background: none; border: 1px solid transparent; font-size: 13px; font-weight: 500; color: var(--text-3);
+  padding: 6px 12px; border-radius: 0; cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.mode-tab:hover { color: var(--text-main); }
+.mode-tab.active { background: var(--primary-subtle); color: var(--primary-text); border-color: #cffafe; font-weight: 600; }
+
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: 0; padding: 36px 20px; text-align: center;
+  background: var(--bg-page); cursor: pointer; transition: all .2s;
+}
+.drop-zone:hover, .drop-zone.drag { border-color: var(--primary); background: var(--primary-subtle); }
+.drop-zone svg, .drop-zone i { width: 36px; height: 36px; color: var(--primary); margin-bottom: 8px; }
+.dz-main { font-size: 13.5px; font-weight: 600; color: var(--text-main); }
+.dz-hint { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+.file-info {
+  margin-top: 12px; font-size: 12.5px; font-weight: 500; color: var(--primary-text);
+  background: var(--primary-subtle); border: 1px solid #cffafe; padding: 8px 12px; border-radius: 0; display: none;
+}
+
+.paste-area {
+  width: 100%; height: 260px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  border: 1px solid var(--border); border-radius: 0; padding: 12px; outline: none; resize: vertical; line-height: 1.5;
+  color: var(--text-main); background: #ffffff;
+}
+.paste-area:focus { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+
+/* 代码查看 */
+.code-view {
+  background: #0f172a; color: #f8fafc; font-family: 'JetBrains Mono', monospace;
+  padding: 16px; border-radius: 0; font-size: 12.5px; max-height: 400px; overflow: auto; line-height: 1.6;
+  border: 1px solid #1e293b;
+}
+.analysis-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.a-chip { font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 0; }
+.a-good { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+.a-bad { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+/* 考生须知 Tab */
+.panel { padding: 20px; }
+.rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.rule-item { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 0; padding: 14px; }
+.rule-item h4 { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--text-main); }
+.rule-item h4 svg, .rule-item h4 i { width: 16px; height: 16px; color: var(--primary); }
+.rule-item p { font-size: 12px; color: var(--text-2); line-height: 1.6; }
+
+/* 提示 Toast */
+#toast-box { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 10px 16px; border-radius: 0; font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-modal); animation: slideIn .2s ease;
+}
+.toast.ok { background: #065f46; color: #fff; }
+.toast.err { background: #991b1b; color: #fff; }
+@keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* 页脚 (对齐官网 dark footer) */
+.site-footer {
+  background: #0f172a; color: #94a3b8; padding: 32px 24px 20px; font-size: 12px;
+  margin-top: auto; border-top: 1px solid #1e293b;
+}
+.footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+.f-brand h4 { color: #ffffff; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.f-brand p { color: #64748b; line-height: 1.6; font-size: 12px; }
+.footer-bottom {
+  max-width: 1200px; margin: 24px auto 0; padding-top: 16px; border-top: 1px solid #1e293b;
+  display: flex; justify-content: space-between; font-size: 11px; color: #64748b;
+}
+
+@media (max-width: 750px) {
+  .topbar-inner { height: auto; min-height: 60px; padding: 10px 14px; flex-wrap: wrap; }
+  .topnav { order: 3; width: 100%; overflow-x: auto; }
+  .main-wrap { padding: 16px 14px 32px; gap: 14px; }
+  h1 { font-size: 22px; }
+  .hud { flex-direction: column; align-items: stretch; gap: 16px; }
+  .countdown-box { min-width: 0; }
+  .bind-card, .table-foot { flex-direction: column; align-items: stretch; }
+  .bind-action, .foot-actions { justify-content: flex-start; flex-wrap: wrap; }
+  .table-head-bar { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .exam-table { min-width: 760px; }
+  .footer-bottom { flex-direction: column; gap: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* 打印控制 */
+@media print {
+  body { background: #fff !important; }
+  .topbar, .main-wrap, .site-footer, #toast-box, .modal-mask { display: none !important; }
+  #print-sheet { display: block !important; position: absolute; left: 0; top: 0; width: 100%; }
+}
+#print-sheet { display: none; }
+/* 打印确认单 */
+.sheet { padding: 26px; color: #000; background: #fff; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- ============ 顶部导航 ============ -->
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <a class="brand-box" href="https://open.moblm.com/" target="_blank" rel="noopener">
+        <img src="https://open.moblm.com/content/orgs/org_40598d93-810f-443e-ab6d-ad3ecd3e8118/resources/66afdc5b-d19d-41f2-8d6a-58b74ea2ee25.svg" alt="大中信奥" onerror="this.style.display='none'">
+      </a>
+      <div class="topnav">
+        <a href="https://open.moblm.com/courses" target="_blank" rel="noopener"><i data-lucide="book-open"></i>学习</a>
+        <a href="https://open.moblm.com/playgrounds" target="_blank" rel="noopener"><i data-lucide="cube"></i>探索</a>
+        <a href="https://open.moblm.com/communities" target="_blank" rel="noopener"><i data-lucide="users"></i>社区</a>
+        <a href="https://open.moblm.com/store" target="_blank" rel="noopener"><i data-lucide="shopping-bag"></i>商店</a>
+        <a href="https://open.moblm.com/showcase" target="_blank" rel="noopener"><i data-lucide="trophy"></i>作品展示</a>
+        <a href="https://www.moblm.com/showcase/" target="_blank" rel="noopener"><i data-lucide="medal"></i>学员成就</a>
+        <a href="https://open.moblm.com/leaderboard" target="_blank" rel="noopener"><i data-lucide="award"></i>排行榜</a>
+        <a href="/csp-collector/" class="active"><i data-lucide="hard-drives"></i>CSP复赛代码回收</a>
+      </div>
+      <div class="auth-area" id="auth-area"></div>
+    </div>
+  </nav>
+
+  <div class="main-wrap">
+
+    <!-- 页面标题 -->
+    <div class="page-title-row">
+      <div class="page-title-icon"><i data-lucide="hard-drives" style="width:17px;height:17px;"></i></div>
+      <div>
+        <h1>CSP 复赛代码回收</h1>
+        <div class="pt-sub">CCF CSP-J/S 认证复赛上机考试 · 代码提交与归档系统</div>
+      </div>
+    </div>
+
+    <!-- ============ 考试 HUD ============ -->
+    <div class="card hud">
+      <div class="hud-left">
+        <span class="hud-tag"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> CCF 官方复赛机考标准</span>
+        <h2>CSP-J 2026 第二轮认证 <span>· 复赛代码回收</span></h2>
+        <div class="hud-meta">
+          <span>考生姓名：<b id="hud-name">—</b></span>
+          <span>官网账号：<b class="mono" id="hud-exam">—</b></span>
+          <span>机房机位：<b id="hud-seat">—</b></span>
+          <span>考点：<b>河南 · 大中信奥</b></span>
+        </div>
+      </div>
+      <div class="countdown-box">
+        <div class="cd-label">距考试结束</div>
+        <div class="cd-time" id="cd-time">--:--:--</div>
+      </div>
+    </div>
+
+    <!-- ============ 账号绑定卡 ============ -->
+    <div class="card bind-card" id="bind-card">
+      <div class="bind-icon"><i data-lucide="link-2" style="width:20px;height:20px;"></i></div>
+      <div class="bind-body" id="bind-body">
+        <h3>正在检测官网登录状态…</h3>
+        <p>正在与大中信奥官网账号系统建立安全连接。</p>
+      </div>
+      <div class="bind-action" id="bind-action"></div>
+    </div>
+
+    <!-- CCF 提醒 -->
+    <div class="ccf-alert">
+      <b>⚠️ CCF 官方复赛特别提醒（防爆零守则）：</b><br>
+      1. 登录后系统自动以你的<b>官网账号</b>建立个人归档目录，每道题只需建立<span class="hl">英文全小写</span>的子文件夹，代码命名为 <span class="hl">[题目英文名].cpp</span>（如 apple/apple.cpp），无需手动填写任何个人信息。<br>
+      2. 请务必确认代码已正确开启 <span class="hl">freopen</span> 且文件名拼写完全准确，提交文件严禁为空文件（0 字节）。系统将在上传时进行自动合规校验。
+    </div>
+
+    <!-- ============ 选项卡 ============ -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-btn-sub" onclick="switchMainTab('sub')"><i data-lucide="upload-cloud"></i>代码提交与状态</button>
+        <button class="tab-btn" id="tab-btn-doc" onclick="switchMainTab('doc')"><i data-lucide="book-open"></i>考生须知与规范</button>
+        <button class="tab-btn" id="tab-btn-mat" onclick="switchMainTab('mat')"><i data-lucide="download"></i>试题及大样例下载</button>
+      </div>
+
+      <!-- Tab 1: 提交状态 -->
+      <div id="tab-content-sub">
+        <div class="table-head-bar">
+          <h2><i data-lucide="list-checks"></i>认证题目代码列表（共 4 题）</h2>
+          <span class="submit-count">已提交: <b id="status-submitted-count">0</b> / 4 题</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="exam-table">
+            <thead>
+              <tr>
+                <th>序号</th><th>题目名称</th><th>标准文件名</th><th>提交状态</th><th>文件大小</th><th>MD5 校验摘要</th><th style="text-align:right;">代码操作</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-foot">
+          <span class="note"><i data-lucide="hard-drive"></i> 已启用实时物理磁盘落盘，交卷后支持打印《选手代码提交签字确认单》。</span>
+          <div class="foot-actions">
+            <button class="btn btn-outline btn-sm" id="btn-receipt" onclick="openReceipt()"><i data-lucide="file-text"></i> 生成/查看交卷确认单</button>
+            <button class="btn btn-brand btn-sm" id="btn-finalize" onclick="doFinalize()"><i data-lucide="lock"></i> 确认最终交卷 (锁定代码)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: 考生须知 -->
+      <div id="tab-content-doc" style="display:none;">
+        <div class="panel">
+          <h2 style="font-size:15.5px;font-weight:800;">CCF 全国青少年信息学奥林匹克系列认证考生操作规范</h2>
+          <div class="rules-grid" style="margin-top:14px;">
+            <div class="rule-item">
+              <h4><i data-lucide="folder-tree"></i>目录结构要求</h4>
+              <p>登录后系统自动按你的<b>官网账号</b>建立归档目录（账号/题目英文名/题目英文名.cpp），交卷后一键导出标准评测包，考生无需关心目录组织。</p>
+            </div>
+            <div class="rule-item">
+              <h4><i data-lucide="cpu"></i>编译器与环境</h4>
+              <p>复赛统一使用 <b>NOI Linux 2.0</b> 评测环境，g++ 编译，标准为 <b>C++14</b>。请勿使用 Windows 独有头文件（如 <code>conio.h</code>、<code>windows.h</code>）。</p>
+            </div>
+            <div class="rule-item">
+              <h4><i data-lucide="file-input"></i>文件读写规范</h4>
+              <p>所有试题必须使用标准文件输入输出：<code>freopen("xxx.in", "r", stdin);</code> 与 <code>freopen("xxx.out", "w", stdout);</code>，不得开启其它调试文件。</p>
+            </div>
+            <div class="rule-item">
+              <h4><i data-lucide="pen-line"></i>交卷确认</h4>
+              <p>考试结束前必须点击<b>「确认最终交卷」</b>，并在监考老师处核对打印的《代码提交确认单》并<b>签字确认</b>。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: 材料下载 -->
+      <div id="tab-content-mat" style="display:none;">
+        <div class="panel">
+          <h2 style="font-size:15.5px;font-weight:800;">复赛试题加密包及大样例</h2>
+          <p style="font-size:12.5px;color:var(--text-3);margin-top:6px;">试题解压密码将在考前 5 分钟由大中信奥总考务官广播公布，请提前下载准备。</p>
+          <div id="contest-materials-list"></div>
+          <div class="material-row">
+            <div>
+              <div class="m-name">CSP-J2026_Problemset.pdf</div>
+              <div class="m-desc">全国统一复赛题面 (850 KB) · CCF 官方加密包</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="toast('err','题面附件由考务组考前统一下发，请留意考场广播。')"><i data-lucide="file-down"></i> 下载题面</button>
+          </div>
+          <div class="material-row">
+            <div>
+              <div class="m-name">CSP-J2026_Samples.zip</div>
+              <div class="m-desc">大样例测试数据及官方下发文件 (12.4 MB)</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="toast('err','大样例附件由考务组考前统一下发，请留意考场广播。')"><i data-lucide="file-down"></i> 下载大样例</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 上传弹窗 ============ -->
+  <div class="modal-mask" id="modal-upload">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="upload-modal-title">上传代码</h3>
+          <p id="upload-modal-subtitle"></p>
+        </div>
+        <button class="modal-x" onclick="closeModal('modal-upload')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="mode-tabs">
+          <button class="mode-tab active" id="btn-tab-file" onclick="switchUploadTab('file')">本地文件选择</button>
+          <button class="mode-tab" id="btn-tab-paste" onclick="switchUploadTab('paste')">在线粘贴源码</button>
+        </div>
+
+        <div id="panel-file">
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('native-file-input').click()">
+            <i data-lucide="upload-cloud"></i>
+            <div class="dz-main">点击选择本地文件，或拖拽文件到此处</div>
+            <div class="dz-hint">必须命名为 <b id="hint-expected-filename">xxx.cpp</b></div>
+          </div>
+          <input type="file" id="native-file-input" accept=".cpp,.cc,.cxx" style="display:none;">
+          <div class="file-info" id="selected-file-info"></div>
+        </div>
+
+        <div id="panel-paste" style="display:none;">
+          <textarea class="paste-area" id="paste-code-input" placeholder="在此粘贴或编写 C++ 源码…"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+            <button class="btn btn-outline btn-sm" onclick="fillStandardCode()"><i data-lucide="sparkles"></i> 载入标准 AC 模板</button>
+          </div>
+        </div>
+
+        <p style="font-size:12px;color:var(--text-3);margin-top:16px;display:flex;align-items:center;gap:6px;">
+          <i data-lucide="shield-check" style="width:13px;height:13px;color:var(--brand);"></i> 系统将严格校验全小写文件名及 0 字节检查，上传后自动覆盖历史记录。
+        </p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-upload')">取消</button>
+        <button class="btn btn-brand" onclick="executeUpload()"><i data-lucide="check-circle-2"></i> 确认上传并落盘</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 查看代码弹窗 ============ -->
+  <div class="modal-mask" id="modal-code">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3 id="code-modal-title">代码查看</h3><p id="code-modal-filename"></p></div>
+        <button class="modal-x" onclick="closeModal('modal-code')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <pre class="code-view" id="code-modal-content"></pre>
+        <div class="analysis-bar" id="code-analysis-bar"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-code')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 交卷确认单弹窗 ============ -->
+  <div class="modal-mask" id="modal-receipt">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3>大中信奥 · CCF CSP 认证选手代码提交确认单</h3><p>选手代码提交签字确认单（存根联）</p></div>
+        <button class="modal-x" onclick="closeModal('modal-receipt')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-soft);border-radius:12px;padding:18px;color:#000;font-size:12px;">
+          <div style="text-align:center;font-size:16px;font-weight:900;margin-bottom:2px;">大中信奥培训学校 / CSP-J/S 认证考点</div>
+          <div style="text-align:center;font-size:11px;color:#475569;margin-bottom:12px;">选手代码提交签字确认单（存根联）</div>
+          <table style="width:100%;font-size:12px;margin-bottom:10px;">
+            <tr><td><strong>官网账号：</strong><span id="r-exam">—</span></td><td><strong>考生姓名：</strong><span id="r-name">—</span></td></tr>
+            <tr><td><strong>考点机构：</strong>大中信奥 (河南总校)</td><td><strong>机位编号：</strong><span id="r-seat">—</span></td></tr>
+            <tr><td><strong>认证组别：</strong>CSP-J (入门级复赛)</td><td><strong>交卷时间：</strong><span id="r-time">—</span></td></tr>
+          </table>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;" border="1" bordercolor="#cbd5e1" id="receipt-table"></table>
+          <div style="font-size:11px;color:#475569;margin-top:8px;line-height:1.8;">
+            本人已仔细核对上述所提交代码文件的名称、大小及题目对应目录，确认无误。<br><br>
+            <strong>考生签字：</strong>_______________________ &nbsp;&nbsp;&nbsp;&nbsp; <strong>监考考务员签字：</strong>_______________________
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-receipt')">关闭</button>
+        <button class="btn btn-brand" onclick="window.print()"><i data-lucide="printer"></i> 打印此确认单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 打印专用 -->
+  <div id="print-sheet"><div class="sheet" id="print-sheet-inner"></div></div>
+
+  <!-- ============ 页脚（官网内页同款深色页脚） ============ -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="f-brand">
+        <img src="https://open.moblm.com/content/orgs/org_40598d93-810f-443e-ab6d-ad3ecd3e8118/resources/66afdc5b-d19d-41f2-8d6a-58b74ea2ee25.svg" alt="大中信奥" onerror="this.style.display='none'">
+        <p>河南信奥专业培训品牌，成立于2019年，专注C++编程与信息学奥林匹克竞赛（CSP/NOIP/NOI）与青少年AI培训服务。</p>
+      </div>
+      <div class="f-col">
+        <h5>赛事中心</h5>
+        <a href="https://noi.cn/" target="_blank" rel="noopener">NOI官网</a>
+        <a href="https://gesp.ccf.org.cn/" target="_blank" rel="noopener">GESP等级认证</a>
+        <a href="https://ceic.kpcb.org.cn/cms/" target="_blank" rel="noopener">青少年素养大赛</a>
+      </div>
+      <div class="f-col">
+        <h5>联系我们</h5>
+        <span class="f-item"><i data-lucide="phone"></i>19139711085</span>
+        <span class="f-item"><i data-lucide="mail"></i>z@zhong.ac.cn</span>
+        <span class="f-item"><i data-lucide="map-pin"></i>河南省郑州市经开区 经南三路与第六大街交叉口 大中信奥</span>
+        <span class="f-item"><i data-lucide="clock"></i>周一至周日 9:00 - 20:00</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Copyright © 2019-2026 大中信奥 · <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">豫ICP备2023010334号-2</a></span>
+      <span>大中信奥竞赛考务组 · CSP复赛代码回收系统</span>
+    </div>
+  </footer>
+
+  <div class="modal-mask" id="modal-login-prompt">
+    <div class="modal login-prompt-modal">
+      <div class="modal-head"><div><h3>登录后继续</h3><p>大中信奥官网账号安全绑定</p></div><button class="modal-x" onclick="closeModal('modal-login-prompt')"><i data-lucide="x"></i></button></div>
+      <div class="modal-body login-prompt-body"><i data-lucide="lock" style="width:32px;height:32px;color:var(--brand);"></i><p id="login-prompt-message">此操作需要使用大中信奥官网账号登录</p></div>
+      <div class="modal-foot"><button class="btn btn-outline" onclick="closeModal('modal-login-prompt')">暂不登录</button><button class="btn btn-brand" onclick="goToOfficialLogin()"><i data-lucide="log-in"></i> 去官网登录</button></div>
+    </div>
+  </div>
+
+  <div id="toast-box"></div>
+
+  <script>
+    /* ================================================================
+       状态
+    ================================================================ */
+    let me = null;               // 官网账号 { uuid, username, email, name } | null
+    let currentExamId = null;    // 当前生效准考证号
+    let currentContestCode = null;
+    let currentProblems = [];
+    let contestEnd = null;
+    let isLocked = false;
+    let activeUploadProblem = null;
+    let uploadMode = 'file';
+    
+    const $ = (id) => document.getElementById(id);
+
+    function toast(type, msg) {
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.innerText = msg;
+      $('toast-box').appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .3s'; setTimeout(() => el.remove(), 320); }, 4200);
+    }
+    function closeModal(id) { $(id).classList.remove('show'); }
+
+    /* ================================================================
+       初始化：检测官网登录态 → 渲染绑定卡 → 拉取考试状态
+    ================================================================ */
+    async function init() {
+      try {
+        const res = await fetch('api/me');
+        me = await res.json();
+      } catch (e) { me = { authenticated: false }; }
+
+      renderAuthArea();
+      await loadStatus();
+      setInterval(tickCountdown, 1000);
+      setInterval(loadStatus, 30000);
+    }
+
+    function renderAuthArea() {
+      const box = $('auth-area');
+      if (me.authenticated) {
+        box.innerHTML = `
+          <div class="user-chip">
+            <div class="user-avatar">${(me.user.name || '学')[0]}</div>
+            <div><div class="u-name">${escapeHtml(me.user.name)}</div><div class="u-sub">官网账号已登录</div></div>
+          </div>`;
+      } else {
+        box.innerHTML = `
+          <a class="btn-login" href="https://open.moblm.com/auth/login?redirect=%2Fcsp-collector%2F">登录</a>
+          <a class="btn-signup" href="https://open.moblm.com/auth/signup" target="_blank" rel="noopener">注册</a>`;
+      }
+    }
+
+    function renderBindCard() {
+      const card = $('bind-card');
+      const body = $('bind-body');
+      const action = $('bind-action');
+
+      if (me.authenticated) {
+        card.classList.add('ok');
+        body.innerHTML = `
+          <h3>✅ 已登录，官网账号即考生身份</h3>
+          <p>当前账号「<b>${escapeHtml(me.user.name)}</b>」已直接作为考生身份，代码将归档到你本人名下，无需绑定任何号码，可直接上传。</p>`;
+        action.innerHTML = `<span style="font-size:12px;color:var(--text-3);">座位/考场信息由考务按账号分配，未分配时不影响上传</span>`;
+      } else {
+        card.classList.remove('ok');
+        body.innerHTML = `
+          <h3>请使用大中信奥官网账号登录本考务系统</h3>
+          <p>本系统已与官网账号体系打通：<b>登录即考生</b>，无需准考证号、无需绑定，提交记录自动归档到你本人名下。未登录可浏览题目，上传、查看和交卷需先登录。</p>`;
+        action.innerHTML = `
+          <a class="btn btn-brand btn-sm" href="https://open.moblm.com/auth/login?redirect=%2Fcsp-collector%2F"><i data-lucide="log-in" style="width:13px;height:13px;"></i> 官网账号登录</a>`;
+      }
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function renderContestMaterials(materials) {
+      const list = $('contest-materials-list');
+      if (!list) return;
+      if (!materials || materials.length === 0) {
+        list.innerHTML = '';
+        return;
+      }
+      list.innerHTML = materials.map((material) =>
+        `<a class="btn btn-outline btn-sm" style="margin:0 8px 8px 0;" href="api/contest-material/${encodeURIComponent(currentContestCode || '')}/${encodeURIComponent(material.id)}" target="_blank" rel="noopener"><i data-lucide="file-down"></i> ${escapeHtml(material.name || material.filename || 'PDF 资料')}</a>`
+      ).join('');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    /* ================================================================
+       考试状态
+    ================================================================ */
+    async function loadStatus() {
+      const url = 'api/submissions/status';
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        currentProblems = data.problems;
+        isLocked = data.is_locked;
+        currentExamId = data.identity;
+        currentContestCode = data.contest_code;
+        contestEnd = data.contest_end || null;
+        renderContestMaterials(data.materials || []);
+        $('hud-name').innerText = data.student_name || '—';
+        $('hud-exam').innerText = data.account || '—';
+        $('hud-seat').innerText = data.seat || '—';
+        renderBindCard();
+        renderTable();
+        tickCountdown();
+      } catch (err) {
+        console.error('加载状态失败:', err);
+      }
+    }
+
+    function opsEnabled() {
+      return !!(me && me.authenticated && !isLocked);
+    }
+
+    function renderTable() {
+      const tbody = $('student-tbody');
+      tbody.innerHTML = '';
+      let uploadedCount = 0;
+      const authenticated = !!(me && me.authenticated);
+
+      currentProblems.forEach((p) => {
+        if (p.status === 'uploaded') uploadedCount++;
+        const status = p.status === 'uploaded'
+          ? '<span class="pill pill-ok"><i data-lucide="check" style="width:12px;height:12px;"></i> 已提交</span>'
+          : p.status === 'login_required'
+            ? '<span class="pill pill-login"><i data-lucide="lock" style="width:12px;height:12px;"></i> 登录后查看</span>'
+            : '<span class="pill pill-pending"><i data-lucide="circle-dashed" style="width:12px;height:12px;"></i> 未上传</span>';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--text-faint);font-weight:700;">T${p.num}</td>
+          <td><div class="p-name">${p.name}</div><div class="p-sub">子目录: /${p.code}/</div></td>
+          <td><span class="code-tag">${authenticated ? p.filename : '登录后显示'}</span></td>
+          <td>${status}</td>
+          <td class="mono-dim">${authenticated ? p.size : '—'}</td>
+          <td class="mono-dim">${authenticated && p.md5 !== '-' ? p.md5.slice(0, 10) + '…' : '—'}</td>
+          <td style="text-align:right;"><div style="display:inline-flex;gap:8px;align-items:center;">
+            ${authenticated && p.status === 'uploaded' ? `<button class="btn btn-ghost btn-sm" onclick="viewRealCode('${p.code}','${p.name}')"><i data-lucide="eye" style="width:13px;height:13px;"></i> 查看</button>` : ''}
+            <button class="btn btn-primary btn-sm ${authenticated && !isLocked ? '' : 'btn-gated'}" onclick="openUploadModal('${p.code}','${p.name}',${p.num})"><i data-lucide="${authenticated && !isLocked ? 'upload' : 'lock'}" style="width:13px;height:13px;"></i> ${authenticated ? (p.status === 'uploaded' ? '重新上传' : '上传代码') : '登录后上传'}</button>
+          </div></td>`;
+        tbody.appendChild(tr);
+      });
+
+      $('status-submitted-count').innerText = authenticated ? uploadedCount : '登录后查看';
+      $('btn-receipt').classList.toggle('btn-gated', !authenticated);
+      $('btn-finalize').classList.toggle('btn-gated', !authenticated || isLocked);
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function currentReturnUrl() { return window.location.pathname + window.location.search + window.location.hash; }
+    function showLoginPrompt(reason = '此操作需要使用大中信奥官网账号登录') {
+      const message = $('login-prompt-message');
+      if (message) message.innerText = reason;
+      $('modal-login-prompt').classList.add('show');
+      if (window.lucide) window.lucide.createIcons();
+    }
+    function goToOfficialLogin() {
+      window.location.href = `https://open.moblm.com/auth/login?redirect=${encodeURIComponent(currentReturnUrl())}`;
+    }
+    function handleAuthRequired(res, data) {
+      if (res.status === 401 && data && data.code === 'AUTH_REQUIRED') { showLoginPrompt(); return true; }
+      return false;
+    }
+
+    /* ================================================================
+       倒计时
+    ================================================================ */
+    function tickCountdown() {
+      const el = $('cd-time');
+      if (!contestEnd) { el.innerText = '--:--:--'; return; }
+      const end = new Date(contestEnd.replace(' ', 'T')).getTime();
+      let diff = Math.floor((end - Date.now()) / 1000);
+      el.classList.remove('warn', 'over');
+      if (diff <= 0) { el.innerText = '考试已结束'; el.classList.add('over'); return; }
+      const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const s = String(diff % 60).padStart(2, '0');
+      el.innerText = `${h}:${m}:${s}`;
+      if (diff < 600) el.classList.add('warn');
+    }
+
+    /* ================================================================
+       选项卡
+    ================================================================ */
+    function switchMainTab(tab) {
+      ['sub', 'doc', 'mat'].forEach(t => {
+        $('tab-btn-' + t).classList.toggle('active', t === tab);
+        $('tab-content-' + t).style.display = (t === tab) ? 'block' : 'none';
+      });
+    }
+
+    /* ================================================================
+       上传
+    ================================================================ */
+    function openUploadModal(problemCode, problemName, num) {
+      if (!opsEnabled()) {
+        if (isLocked) toast('err', '试卷已锁定封存，无法再修改或上传代码！');
+        else showLoginPrompt();
+        return;
+      }
+      activeUploadProblem = problemCode;
+      $('upload-modal-title').innerText = `上传 T${num} ${problemName}（${problemCode}）代码`;
+      $('upload-modal-subtitle').innerText = `考生：${me.user.name} ｜ 规定文件名: ${problemCode}.cpp`;
+      $('hint-expected-filename').innerText = `${problemCode}.cpp`;
+      $('native-file-input').value = '';
+      $('selected-file-info').style.display = 'none';
+      fillStandardCode();
+      switchUploadTab('file');
+      $('modal-upload').classList.add('show');
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    function switchUploadTab(mode) {
+      uploadMode = mode;
+      $('btn-tab-file').classList.toggle('active', mode === 'file');
+      $('btn-tab-paste').classList.toggle('active', mode === 'paste');
+      $('panel-file').style.display = mode === 'file' ? 'block' : 'none';
+      $('panel-paste').style.display = mode === 'paste' ? 'block' : 'none';
+    }
+
+    function fillStandardCode() {
+      if (!activeUploadProblem) return;
+      const code = activeUploadProblem;
+      $('paste-code-input').value =
+`// 大中信奥 CSP-J 2026 复赛官方标准模板 - ${code}
+#include <iostream>
+#include <cstdio>
+using namespace std;
+
+int main() {
+    freopen("${code}.in", "r", stdin);
+    freopen("${code}.out", "w", stdout);
+
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    // TODO: 考生解题逻辑
+    int ans = 0;
+    cout << ans << endl;
+
+    return 0;
+}
+`;
+    }
+
+    $('native-file-input').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      const infoEl = $('selected-file-info');
+      if (file) { infoEl.style.display = 'block'; infoEl.innerText = `已选中文件: ${file.name}（${file.size} 字节）`; }
+      else infoEl.style.display = 'none';
+    });
+
+    const dropZone = $('drop-zone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault(); dropZone.classList.remove('drag');
+      if (e.dataTransfer.files.length > 0) {
+        $('native-file-input').files = e.dataTransfer.files;
+        const file = e.dataTransfer.files[0];
+        const infoEl = $('selected-file-info');
+        infoEl.style.display = 'block';
+        infoEl.innerText = `已拖入文件: ${file.name}（${file.size} 字节）`;
+      }
+    });
+
+    async function executeUpload() {
+      if (!activeUploadProblem) return;
+      const problemCode = activeUploadProblem;
+
+      if (uploadMode === 'file') {
+        const file = $('native-file-input').files[0];
+        if (!file) { toast('err', '请先选择或拖入本地代码文件！'); return; }
+        const formData = new FormData();
+        formData.append('problem_code', problemCode);
+        formData.append('code_file', file);
+        try {
+          const res = await fetch('api/upload', { method: 'POST', body: formData });
+          const result = await res.json();
+          if (res.ok && result.success) {
+            toast('ok', `✅ 上传成功并完成落盘：${result.filename}（${result.size} 字节）MD5 ${result.md5.slice(0, 12)}…`);
+            closeModal('modal-upload'); loadStatus();
+          } else if (!handleAuthRequired(res, result)) toast('err', result.error || '上传失败');
+        } catch (err) { toast('err', '上传请求出错: ' + err.message); }
+      } else {
+        const codeText = $('paste-code-input').value;
+        if (!codeText.trim()) { toast('err', '代码内容不能为空！'); return; }
+        try {
+          const res = await fetch('api/upload-text', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ problem_code: problemCode, filename: `${problemCode}.cpp`, code_text: codeText })
+          });
+          const result = await res.json();
+          if (res.ok && result.success) {
+            toast('ok', `✅ 在线提交成功并完成真实落盘：${result.filename}（${result.size} 字节）`);
+            closeModal('modal-upload'); loadStatus();
+          } else if (!handleAuthRequired(res, result)) toast('err', result.error || '提交失败');
+        } catch (err) { toast('err', '提交请求出错: ' + err.message); }
+      }
+    }
+
+    /* ================================================================
+       查看代码
+    ================================================================ */
+    async function viewRealCode(problemCode, problemName) {
+      if (!me || !me.authenticated) { showLoginPrompt(); return; }
+      try {
+        const res = await fetch(`api/view-code/${problemCode}`);
+        const data = await res.json();
+        if (!res.ok) { if (handleAuthRequired(res, data)) return; throw new Error(data.error || '获取代码失败'); }
+        $('code-modal-title').innerText = `代码合规分析：${data.filename}（${problemName}）`;
+        $('code-modal-filename').innerText = `考生：${me.user.name} ｜ ${data.filename}`;
+        $('code-modal-content').innerText = data.code;
+        const a = data.analysis;
+        $('code-analysis-bar').innerHTML = `
+          <span class="a-chip ${a.has_freopen_in ? 'a-good' : 'a-bad'}">freopen .in ${a.has_freopen_in ? '✓' : '✗'}</span>
+          <span class="a-chip ${a.has_freopen_out ? 'a-good' : 'a-bad'}">freopen .out ${a.has_freopen_out ? '✓' : '✗'}</span>
+          <span class="a-chip ${a.has_return_0 ? 'a-good' : 'a-bad'}">return 0 ${a.has_return_0 ? '✓' : '✗'}</span>
+          <span class="a-chip ${a.has_forbidden_headers ? 'a-bad' : 'a-good'}">Windows 头文件 ${a.has_forbidden_headers ? '✗ 检出' : '✓ 未检出'}</span>`;
+        $('modal-code').classList.add('show');
+      } catch (err) { toast('err', err.message); }
+    }
+
+    /* ================================================================
+       最终交卷 & 确认单
+    ================================================================ */
+    async function doFinalize() {
+      if (!me || !me.authenticated) { showLoginPrompt(); return; }
+      if (!opsEnabled()) { toast('err', '试卷已锁定封存，无法再次交卷。'); return; }
+      if (!confirm('确认最终交卷？交卷后代码将被锁定封存，无法再修改！')) return;
+      try {
+        const res = await fetch('api/finalize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        const data = await res.json();
+        if (res.ok && data.success) { toast('ok', data.message); loadStatus(); }
+        else if (!handleAuthRequired(res, data)) toast('err', data.error || '交卷失败');
+      } catch (e) { toast('err', '交卷请求出错: ' + e.message); }
+    }
+
+    function openReceipt() {
+      if (!me || !me.authenticated) { showLoginPrompt(); return; }
+      const name = $('hud-name').innerText, exam = $('hud-exam').innerText, seat = $('hud-seat').innerText;
+      $('r-exam').innerText = exam; $('r-name').innerText = name; $('r-seat').innerText = seat;
+      $('r-time').innerText = new Date().toLocaleString('zh-CN', { hour12: false });
+      let rows = '<tr style="background:#f1f5f9;"><th style="padding:6px;">题号</th><th style="padding:6px;">题目目录</th><th style="padding:6px;">文件名</th><th style="padding:6px;">大小</th><th style="padding:6px;">提交时间</th></tr>';
+      currentProblems.forEach(p => {
+        rows += `<tr style="text-align:center;"><td style="padding:6px;">T${p.num}</td><td style="padding:6px;">/${p.code}/</td><td style="padding:6px;">${p.filename}</td><td style="padding:6px;">${p.status === 'uploaded' ? p.size : '未提交'}</td><td style="padding:6px;">${p.submitted_at}</td></tr>`;
+      });
+      $('receipt-table').innerHTML = rows;
+      $('modal-receipt').classList.add('show');
+    }
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    init();
+
+    // 图标内联（lucide-static），不依赖外部 CDN，国内网络稳定显示
+    var LUCIDE_ICONS = {"award": "<svg class=\"lucide lucide-award\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526\" /><circle cx=\"12\" cy=\"8\" r=\"6\" /></svg>", "book-open": "<svg class=\"lucide lucide-book-open\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M12 7v14\" /><path d=\"M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\" /></svg>", "check": "<svg class=\"lucide lucide-check\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M20 6 9 17l-5-5\" /></svg>", "check-circle-2": "<svg class=\"lucide lucide-circle-check-big\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M21.801 10A10 10 0 1 1 17 3.335\" /><path d=\"m9 11 3 3L22 4\" /></svg>", "circle-dashed": "<svg class=\"lucide lucide-circle-dashed\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M10.1 2.182a10 10 0 0 1 3.8 0\" /><path d=\"M13.9 21.818a10 10 0 0 1-3.8 0\" /><path d=\"M17.609 3.721a10 10 0 0 1 2.69 2.7\" /><path d=\"M2.182 13.9a10 10 0 0 1 0-3.8\" /><path d=\"M20.279 17.609a10 10 0 0 1-2.7 2.69\" /><path d=\"M21.818 10.1a10 10 0 0 1 0 3.8\" /><path d=\"M3.721 6.391a10 10 0 0 1 2.7-2.69\" /><path d=\"M6.391 20.279a10 10 0 0 1-2.69-2.7\" /></svg>", "clock": "<svg class=\"lucide lucide-clock\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><circle cx=\"12\" cy=\"12\" r=\"10\" /><polyline points=\"12 6 12 12 16 14\" /></svg>", "cpu": "<svg class=\"lucide lucide-cpu\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><rect width=\"16\" height=\"16\" x=\"4\" y=\"4\" rx=\"2\" /><rect width=\"6\" height=\"6\" x=\"9\" y=\"9\" rx=\"1\" /><path d=\"M15 2v2\" /><path d=\"M15 20v2\" /><path d=\"M2 15h2\" /><path d=\"M2 9h2\" /><path d=\"M20 15h2\" /><path d=\"M20 9h2\" /><path d=\"M9 2v2\" /><path d=\"M9 20v2\" /></svg>", "cube": "<svg class=\"lucide lucide-cuboid\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"m21.12 6.4-6.05-4.06a2 2 0 0 0-2.17-.05L2.95 8.41a2 2 0 0 0-.95 1.7v5.82a2 2 0 0 0 .88 1.66l6.05 4.07a2 2 0 0 0 2.17.05l9.95-6.12a2 2 0 0 0 .95-1.7V8.06a2 2 0 0 0-.88-1.66Z\" /><path d=\"M10 22v-8L2.25 9.15\" /><path d=\"m10 14 11.77-6.87\" /></svg>", "download": "<svg class=\"lucide lucide-download\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /><polyline points=\"7 10 12 15 17 10\" /><line x1=\"12\" x2=\"12\" y1=\"15\" y2=\"3\" /></svg>", "eye": "<svg class=\"lucide lucide-eye\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\" /><circle cx=\"12\" cy=\"12\" r=\"3\" /></svg>", "file-down": "<svg class=\"lucide lucide-file-down\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /><path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /><path d=\"M12 18v-6\" /><path d=\"m9 15 3 3 3-3\" /></svg>", "file-input": "<svg class=\"lucide lucide-file-input\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4\" /><path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /><path d=\"M2 15h10\" /><path d=\"m9 18 3-3-3-3\" /></svg>", "file-text": "<svg class=\"lucide lucide-file-text\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\" /><path d=\"M14 2v4a2 2 0 0 0 2 2h4\" /><path d=\"M10 9H8\" /><path d=\"M16 13H8\" /><path d=\"M16 17H8\" /></svg>", "folder-tree": "<svg class=\"lucide lucide-folder-tree\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-.9-1.2A1 1 0 0 0 15 3h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z\" /><path d=\"M20 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.92-.6H13a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z\" /><path d=\"M3 5a2 2 0 0 0 2 2h3\" /><path d=\"M3 3v13a2 2 0 0 0 2 2h3\" /></svg>", "hard-drive": "<svg class=\"lucide lucide-hard-drive\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><line x1=\"22\" x2=\"2\" y1=\"12\" y2=\"12\" /><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\" /><line x1=\"6\" x2=\"6.01\" y1=\"16\" y2=\"16\" /><line x1=\"10\" x2=\"10.01\" y1=\"16\" y2=\"16\" /></svg>", "hard-drives": "<svg class=\"lucide lucide-hard-drive\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><line x1=\"22\" x2=\"2\" y1=\"12\" y2=\"12\" /><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\" /><line x1=\"6\" x2=\"6.01\" y1=\"16\" y2=\"16\" /><line x1=\"10\" x2=\"10.01\" y1=\"16\" y2=\"16\" /></svg>", "link-2": "<svg class=\"lucide lucide-link-2\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M9 17H7A5 5 0 0 1 7 7h2\" /><path d=\"M15 7h2a5 5 0 1 1 0 10h-2\" /><line x1=\"8\" x2=\"16\" y1=\"12\" y2=\"12\" /></svg>", "list-checks": "<svg class=\"lucide lucide-list-checks\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"m3 17 2 2 4-4\" /><path d=\"m3 7 2 2 4-4\" /><path d=\"M13 6h8\" /><path d=\"M13 12h8\" /><path d=\"M13 18h8\" /></svg>", "lock": "<svg class=\"lucide lucide-lock\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><rect width=\"18\" height=\"11\" x=\"3\" y=\"11\" rx=\"2\" ry=\"2\" /><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" /></svg>", "log-in": "<svg class=\"lucide lucide-log-in\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4\" /><polyline points=\"10 17 15 12 10 7\" /><line x1=\"15\" x2=\"3\" y1=\"12\" y2=\"12\" /></svg>", "mail": "<svg class=\"lucide lucide-mail\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><rect width=\"20\" height=\"16\" x=\"2\" y=\"4\" rx=\"2\" /><path d=\"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7\" /></svg>", "map-pin": "<svg class=\"lucide lucide-map-pin\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\" /><circle cx=\"12\" cy=\"10\" r=\"3\" /></svg>", "medal": "<svg class=\"lucide lucide-medal\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M7.21 15 2.66 7.14a2 2 0 0 1 .13-2.2L4.4 2.8A2 2 0 0 1 6 2h12a2 2 0 0 1 1.6.8l1.6 2.14a2 2 0 0 1 .14 2.2L16.79 15\" /><path d=\"M11 12 5.12 2.2\" /><path d=\"m13 12 5.88-9.8\" /><path d=\"M8 7h8\" /><circle cx=\"12\" cy=\"17\" r=\"5\" /><path d=\"M12 18v-2h-.5\" /></svg>", "pen-line": "<svg class=\"lucide lucide-pen-line\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M12 20h9\" /><path d=\"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z\" /></svg>", "phone": "<svg class=\"lucide lucide-phone\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z\" /></svg>", "printer": "<svg class=\"lucide lucide-printer\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\" /><path d=\"M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6\" /><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\" rx=\"1\" /></svg>", "shield-check": "<svg class=\"lucide lucide-shield-check\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" /><path d=\"m9 12 2 2 4-4\" /></svg>", "shopping-bag": "<svg class=\"lucide lucide-shopping-bag\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z\" /><path d=\"M3 6h18\" /><path d=\"M16 10a4 4 0 0 1-8 0\" /></svg>", "sparkles": "<svg class=\"lucide lucide-sparkles\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\" /><path d=\"M20 3v4\" /><path d=\"M22 5h-4\" /><path d=\"M4 17v2\" /><path d=\"M5 18H3\" /></svg>", "trophy": "<svg class=\"lucide lucide-trophy\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M6 9H4.5a2.5 2.5 0 0 1 0-5H6\" /><path d=\"M18 9h1.5a2.5 2.5 0 0 0 0-5H18\" /><path d=\"M4 22h16\" /><path d=\"M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22\" /><path d=\"M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22\" /><path d=\"M18 2H6v7a6 6 0 0 0 12 0V2Z\" /></svg>", "upload": "<svg class=\"lucide lucide-upload\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /><polyline points=\"17 8 12 3 7 8\" /><line x1=\"12\" x2=\"12\" y1=\"3\" y2=\"15\" /></svg>", "upload-cloud": "<svg class=\"lucide lucide-cloud-upload\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M12 13v8\" /><path d=\"M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242\" /><path d=\"m8 17 4-4 4 4\" /></svg>", "users": "<svg class=\"lucide lucide-users\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\" /><circle cx=\"9\" cy=\"7\" r=\"4\" /><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\" /><path d=\"M16 3.13a4 4 0 0 1 0 7.75\" /></svg>", "x": "<svg class=\"lucide lucide-x\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" ><path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" /></svg>"};
+    function renderIcons(scope) {
+      var els = (scope || document).querySelectorAll('i[data-lucide]');
+      Array.prototype.forEach.call(els, function (el) {
+        var svg = LUCIDE_ICONS[el.getAttribute('data-lucide')];
+        if (!svg) return;
+        var holder = document.createElement('div');
+        holder.innerHTML = svg;
+        var node = holder.firstChild;
+        for (var i = 0; i < el.attributes.length; i++) {
+          var a = el.attributes[i];
+          if (a.name === 'data-lucide') continue;
+          node.setAttribute(a.name, a.value);
+        }
+        el.parentNode.replaceChild(node, el);
+      });
+    }
+    renderIcons();
+    // 动态插入的模板（账号卡/表格/弹窗等）自动补渲染图标
+    (function () {
+      var pending = false;
+      new MutationObserver(function () {
+        if (pending) return;
+        pending = true;
+        setTimeout(function () { pending = false; renderIcons(); }, 0);
+      }).observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
+</body>
+</html>

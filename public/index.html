@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大中信奥 · 代码回收系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20261011-2">
+</head>
+<body>
+  <!-- ============ 顶部导航 ============ -->
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <a class="brand-box" href="/" rel="noopener">
+        <span class="brand-logo"><i data-lucide="hard-drives" style="width:20px;height:20px;"></i> 代码回收系统</span>
+        <span class="brand-badge" id="current-category-badge">通用评测版</span>
+      </a>
+
+      <div class="topnav">
+        <!-- 比赛切换下拉菜单 -->
+        <div class="contest-select-wrap">
+          <i data-lucide="trophy" style="width:14px;height:14px;color:var(--primary);"></i>
+          <label for="contest-selector" style="color:var(--text-3);font-size:12px;">当前比赛:</label>
+          <select id="contest-selector" class="contest-select" onchange="onContestChange(this.value)">
+            <option value="">加载比赛列表中...</option>
+          </select>
+        </div>
+        <a href="/csp-collector/admin" target="_blank" class="btn btn-outline btn-sm">
+          <i data-lucide="settings" style="width:13px;height:13px;"></i>考务管理
+        </a>
+      </div>
+
+      <div class="auth-area" id="auth-area"></div>
+    </div>
+  </nav>
+
+  <div class="main-wrap">
+    <!-- 页面标题 -->
+    <div class="page-title-row">
+      <div class="page-title-left">
+        <div class="page-title-icon"><i data-lucide="hard-drives" style="width:18px;height:18px;"></i></div>
+        <div>
+          <h1 id="page-contest-title">代码回收系统</h1>
+          <div class="pt-sub" id="page-contest-subtitle">机考与认证竞赛 · 代码提交与智能归档系统</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 考试 HUD (官网全浅色扁平风) ============ -->
+    <div class="card hud">
+      <div class="hud-left">
+        <span class="hud-tag" id="hud-tag-box"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> 标准机考规范</span>
+        <h2 id="hud-contest-name">正在加载认证赛事…</h2>
+        <div class="hud-meta">
+          <span>考生姓名：<b id="hud-name">—</b></span>
+          <span>官网账号：<b class="mono" id="hud-exam">—</b></span>
+          <span>机房机位：<b id="hud-seat">—</b></span>
+          <span>考点考场：<b id="hud-school">—</b></span>
+        </div>
+      </div>
+      <div class="countdown-box">
+        <div class="cd-label">距考试结束</div>
+        <div class="cd-time" id="cd-time">--:--:--</div>
+      </div>
+    </div>
+
+    <!-- ============ 账号绑定卡 ============ -->
+    <div class="card bind-card" id="bind-card">
+      <div class="bind-icon"><i data-lucide="link-2" style="width:20px;height:20px;"></i></div>
+      <div class="bind-body" id="bind-body">
+        <h3>正在检测官网登录状态…</h3>
+        <p>正在与大中信奥官网账号系统建立安全连接。</p>
+      </div>
+      <div class="bind-action" id="bind-action"></div>
+    </div>
+
+    <!-- CCF / 考务 提醒 -->
+    <div class="ccf-alert" id="contest-alert-box">
+      <b>⚠️ 考场特别提醒（防爆零守则）：</b><br>
+      <span id="alert-content">请务必确认提交文件符合题目要求的格式规范，代码命名规范拼写准确，提交文件严禁为空文件（0 字节）。</span>
+    </div>
+
+    <div class="card" id="contest-materials" style="display:none;">
+      <div class="panel">
+        <h2 style="font-size:14px;font-weight:600;color:var(--text-main);">比赛资料</h2>
+        <div id="contest-materials-list" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ============ 选项卡 ============ -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-btn-sub" onclick="switchMainTab('sub')"><i data-lucide="upload-cloud" style="width:15px;height:15px;"></i>代码提交与状态</button>
+        <button class="tab-btn" id="tab-btn-doc" onclick="switchMainTab('doc')"><i data-lucide="book-open" style="width:15px;height:15px;"></i>考生须知与规范</button>
+      </div>
+
+      <!-- Tab 1: 提交状态 -->
+      <div id="tab-content-sub">
+        <div class="table-head-bar">
+          <h2><i data-lucide="list-checks" style="width:16px;height:16px;color:var(--primary);"></i>认证题目代码列表（共 <span id="prob-total-count">0</span> 题）</h2>
+          <span class="submit-count">已提交: <b id="status-submitted-count">0</b> / <span id="prob-total-denom">0</span> 题</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="exam-table">
+            <thead>
+              <tr>
+                <th>序号</th>
+                <th>题目名称</th>
+                <th>标准归档名 / 格式</th>
+                <th>提交状态</th>
+                <th>文件大小</th>
+                <th>MD5 校验摘要</th>
+                <th style="text-align:right;">代码操作</th>
+              </tr>
+            </thead>
+            <tbody id="student-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-foot">
+          <span class="note"><i data-lucide="hard-drive" style="width:14px;height:14px;"></i> 已启用实时物理磁盘落盘，交卷后支持打印《选手代码提交签字确认单》。</span>
+          <div class="foot-actions">
+            <button class="btn btn-outline btn-sm" id="btn-receipt" onclick="openReceipt()"><i data-lucide="file-text" style="width:13px;height:13px;"></i> 生成/查看交卷确认单</button>
+            <button class="btn btn-brand btn-sm" id="btn-finalize" onclick="doFinalize()"><i data-lucide="lock" style="width:13px;height:13px;"></i> 确认最终交卷 (锁定代码)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: 考生须知 -->
+      <div id="tab-content-doc" style="display:none;">
+        <div class="panel">
+          <h2 style="font-size:14px;font-weight:600;color:var(--text-main);">计算机上机认证与竞赛操作规范</h2>
+          <div class="rules-grid" style="margin-top:14px;">
+            <div class="rule-item">
+              <h4><i data-lucide="folder-tree" style="width:15px;height:15px;color:var(--primary);"></i>目录结构要求</h4>
+              <p>系统自动按你的<b>官网账号</b>建立归档目录（账号/题目英文名/提交文件），交卷后一键导出标准评测包，考生无需手动调整深层文件夹。</p>
+            </div>
+            <div class="rule-item">
+              <h4><i data-lucide="cpu" style="width:15px;height:15px;color:var(--primary);"></i>编译器与评测环境</h4>
+              <p>信奥类竞赛统一使用 <b>NOI Linux 2.0</b> 评测环境；Python 挑战赛使用标准 Python 3 环境。请严格按照每题指定的上交类型提交。</p>
+            </div>
+            <div class="rule-item">
+              <h4><i data-lucide="file-input" style="width:15px;height:15px;color:var(--primary);"></i>文件规范与防爆零</h4>
+              <p>严禁提交 0 字节文件；若题目要求文件重定向，务必确认 <code>freopen</code> 正确开启。系统将在上传时进行智能合规校验。</p>
+            </div>
+            <div class="rule-item">
+              <h4><i data-lucide="pen-line" style="width:15px;height:15px;color:var(--primary);"></i>交卷签字确认</h4>
+              <p>考试结束前必须点击<b>「确认最终交卷」</b>，并在监考老师处核对打印的《代码提交确认单》并<b>双人签字确认</b>。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 上传弹窗 ============ -->
+  <div class="modal-mask" id="modal-upload">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="upload-modal-title">上传代码</h3>
+          <p id="upload-modal-subtitle"></p>
+        </div>
+        <button class="modal-x" onclick="closeModal('modal-upload')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="mode-tabs" id="upload-mode-tabs">
+          <button class="mode-tab active" id="btn-tab-file" onclick="switchUploadTab('file')">本地文件选择</button>
+          <button class="mode-tab" id="btn-tab-paste" onclick="switchUploadTab('paste')">在线编写/粘贴源码</button>
+        </div>
+
+        <div id="panel-file">
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('native-file-input').click()">
+            <i data-lucide="upload-cloud"></i>
+            <div class="dz-main">点击选择本地文件，或拖拽文件到此处</div>
+            <div class="dz-hint">允许文件格式: <b id="hint-expected-filename">*.cpp</b></div>
+          </div>
+          <input type="file" id="native-file-input" style="display:none;">
+          <div class="file-info" id="selected-file-info"></div>
+        </div>
+
+        <div id="panel-paste" style="display:none;">
+          <textarea class="paste-area" id="paste-code-input" placeholder="在此编写或粘贴源码…"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+            <button class="btn btn-outline btn-sm" onclick="loadProblemTemplate()"><i data-lucide="sparkles"></i> 载入官方标准答题模板</button>
+          </div>
+        </div>
+
+        <p style="font-size:12px;color:var(--text-3);margin-top:16px;display:flex;align-items:center;gap:6px;">
+          <i data-lucide="shield-check" style="width:13px;height:13px;color:var(--primary);"></i> 系统将严格校验文件扩展名及 0 字节检查，上传后自动覆盖历史记录。
+        </p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-upload')">取消</button>
+        <button class="btn btn-brand" onclick="executeUpload()"><i data-lucide="check-circle-2"></i> 确认上传并落盘</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 查看代码弹窗 ============ -->
+  <div class="modal-mask" id="modal-code">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3 id="code-modal-title">代码/文件查看</h3><p id="code-modal-filename"></p></div>
+        <button class="modal-x" onclick="closeModal('modal-code')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <pre class="code-view" id="code-modal-content"></pre>
+        <div class="analysis-bar" id="code-analysis-bar"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-code')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 交卷确认单弹窗 ============ -->
+  <div class="modal-mask" id="modal-receipt">
+    <div class="modal">
+      <div class="modal-head">
+        <div><h3>代码回收系统 · 选手代码提交确认单</h3><p>选手代码提交签字确认单（存根联）</p></div>
+        <button class="modal-x" onclick="closeModal('modal-receipt')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div style="background:var(--bg-subtle);border:1px solid var(--border);padding:18px;color:#0f172a;font-size:12px;">
+          <div style="text-align:center;font-size:15px;font-weight:700;margin-bottom:2px;" id="r-contest-title">代码回收系统 / 上机认证考点</div>
+          <div style="text-align:center;font-size:11px;color:var(--text-3);margin-bottom:12px;">选手代码提交签字确认单（存根联）</div>
+          <table style="width:100%;font-size:12px;margin-bottom:10px;">
+            <tr><td><strong>官网账号：</strong><span id="r-exam">—</span></td><td><strong>考生姓名：</strong><span id="r-name">—</span></td></tr>
+            <tr><td><strong>考点机构：</strong><span id="r-school">—</span></td><td><strong>机位编号：</strong><span id="r-seat">—</span></td></tr>
+            <tr><td><strong>认证场次：</strong><span id="r-contest-short">—</span></td><td><strong>交卷时间：</strong><span id="r-time">—</span></td></tr>
+          </table>
+          <table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;" border="1" bordercolor="#cbd5e1" id="receipt-table"></table>
+          <div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.8;">
+            本人已仔细核对上述所提交代码文件的名称、大小及题目对应目录，确认无误。<br><br>
+            <strong>考生签字：</strong>_______________________ &nbsp;&nbsp;&nbsp;&nbsp; <strong>监考考务员签字：</strong>_______________________
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-receipt')">关闭</button>
+        <button class="btn btn-brand" onclick="window.print()"><i data-lucide="printer"></i> 打印此确认单</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 打印专用区域 -->
+  <div id="print-sheet"><div class="sheet" id="print-sheet-inner"></div></div>
+
+  <!-- 页脚 -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="f-brand">
+        <h4>大中信奥 · 代码回收系统</h4>
+        <p>AI+OI 双擎链接热爱</p>
+        <p>提供多赛事、多语言、自定义类型的上机考试代码标准化智能回收、静态合规审查与考务存档服务。</p>
+      </div>
+      <div>
+        <h5 style="color:#ffffff;margin-bottom:6px;font-size:13px;font-weight:600;">考务与系统导航</h5>
+        <a href="/csp-collector/admin" target="_blank" style="color:#38bdf8;text-decoration:none;">考务管理控制台</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Copyright © 2019-2026 大中信奥竞赛考务组</span>
+      <span>THINK · CREATE · A BRIGHTER TOMORROW</span>
+    </div>
+  </footer>
+
+  <div id="toast-box"></div>
+
+  <!-- ============ 登录提示 ============ -->
+  <div class="modal-mask" id="modal-login-prompt">
+    <div class="modal login-prompt-modal">
+      <div class="modal-head">
+        <div>
+          <h3>登录后继续</h3>
+          <p>大中信奥官网账号安全绑定</p>
+        </div>
+        <button class="modal-x" onclick="closeModal('modal-login-prompt')"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body login-prompt-body">
+        <i data-lucide="lock" style="width:32px;height:32px;color:var(--primary);"></i>
+        <p id="login-prompt-message">此操作需要使用大中信奥官网账号登录</p>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('modal-login-prompt')">暂不登录</button>
+        <button class="btn btn-brand" onclick="goToOfficialLogin()"><i data-lucide="log-in"></i> 去官网登录</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=20261011-2"></script>
+</body>
+</html>
