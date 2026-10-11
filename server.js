@@ -451,7 +451,7 @@ async function getAuthenticatedUser(req) {
     };
   }
 
-  // 1. 优先向 LearnHouse 主站后端校验真实学员 Cookie (LH_access)
+  // 1. 优先向 大中信奥编程教学系统 主站后端校验真实学员 Cookie (LH_access)
   const token = req.cookies && req.cookies['LH_access'];
   if (token) {
     try {

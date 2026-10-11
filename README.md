@@ -22,7 +22,7 @@
 - 显示文件大小、MD5、提交时间，支持最终交卷锁定。
 - 教师查看已有提交记录，导出单人或全场代码包。
 - 打印提交确认单。
-- 支持 LearnHouse 登录会话与教师角色授权。
+- 支持 大中信奥编程教学系统 登录会话与教师角色授权。
 
 ## 项目结构
 
@@ -49,7 +49,7 @@ npm start
 
 直接启动可以浏览公开示例，但不会自动获得学生或教师身份。
 
-### 不接入 LearnHouse 的本地演示（PowerShell）
+### 不接入 大中信奥编程教学系统 的本地演示（PowerShell）
 
 ~~~powershell
 $env:CODE_COLLECTOR_DEV_AUTH = 'true'
@@ -63,11 +63,11 @@ npm start
 这只是本机演示入口，不是独立的用户注册登录系统。不要将此模式暴露到公网。
 关闭 PowerShell 会话可清除本次设置的进程环境变量。
 
-### LearnHouse 集成
+### 大中信奥编程教学系统 集成
 
 当前代码使用 LH_access Cookie，并向
 http://127.0.0.1:9000/api/v1/users/session 校验身份。
-部署者需要自己配置 LearnHouse、同站 Cookie 和反向代理；源码包不包含这些服务。
+部署者需要自己配置 大中信奥编程教学系统、同站 Cookie 和反向代理；源码包不包含这些服务。
 
 生产环境必须关闭 CODE_COLLECTOR_DEV_AUTH 并设置 NODE_ENV=production。
 设置 CODE_COLLECTOR_DATA_DIR 将运行数据存到仓库外，并建立独立备份。
